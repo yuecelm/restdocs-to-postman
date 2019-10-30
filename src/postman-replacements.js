@@ -29,13 +29,16 @@ const isFolder = (postmanItem) => {
 const replaceHeaders = (postmanCollection, headerReplacements) => {
     postmanCollection.item.forEach(postmanItem => {
         if (isRequest(postmanItem)) {
-            postmanItem.request.header.forEach(postmanHeader => {
-                headerReplacements.forEach(replacementHeader => {
+            headerReplacements.forEach(replacementHeader => {
+                postmanItem.request.header.forEach(postmanHeader => {
                     // HTTP header names are case insensitive
                     if (utils.caseInsensitiveEquals(postmanHeader.key, replacementHeader.name)) {
                         postmanHeader.value = replacementHeader.newValue;
                     }
                 });
+                if (replacementHeader.addValue) {
+                    postmanItem.request.header.push({"key": replacementHeader.name, "value": replacementHeader.addValue});
+                }
             });
         } else if (isFolder(postmanItem)) {
             replaceHeaders(postmanItem, headerReplacements);
@@ -51,6 +54,19 @@ const replaceHost = (postmanCollection, hostReplacement) => {
             postmanUrl.host[0] = postmanUrl.host[0].replace(hostReplacement.before, hostReplacement.after);
         } else if (isFolder(postmanItem)) {
             replaceHost(postmanItem, hostReplacement);
+        }
+    });
+};
+
+const replacePathPrefix = (postmanCollection, pathReplacement) => {
+    postmanCollection.item.forEach(postmanItem => {
+        if (isRequest(postmanItem)) {
+            const postmanUrl = postmanItem.request.url;
+            postmanItem.name = postmanItem.name.replace(pathReplacement.before, "");
+            postmanUrl.raw = postmanUrl.raw.replace(pathReplacement.before, pathReplacement.after);
+            postmanUrl.path = postmanUrl.path.join("/").replace(pathReplacement.before, pathReplacement.after).split("/");
+        } else if (isFolder(postmanItem)) {
+            replacePathPrefix(postmanItem, pathReplacement);
         }
     });
 };
@@ -80,7 +96,10 @@ module.exports.performPostmanReplacements = (postmanCollection, replacements) =>
     if (replacements.host) {
         replaceHost(postmanCollection, replacements.host);
     }
+    if (replacements.pathPrefix) {
+        replacePathPrefix(postmanCollection, replacements.pathPrefix);
+    }
     if (replacements.pathReplacements) {
-        replacePathVariables(postmanCollection, replacements.pathReplacements)
+        replacePathVariables(postmanCollection, replacements.pathReplacements);
     }
 };
