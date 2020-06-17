@@ -58,13 +58,15 @@ const replaceHost = (postmanCollection, hostReplacement) => {
     });
 };
 
-const replacePathPrefix = (postmanCollection, pathReplacement) => {
+const replacePathPrefix = (postmanCollection, pathReplacements) => {
     postmanCollection.item.forEach(postmanItem => {
         if (isRequest(postmanItem)) {
-            const postmanUrl = postmanItem.request.url;
-            postmanItem.name = postmanItem.name.replace(pathReplacement.before, "");
-            postmanUrl.raw = postmanUrl.raw.replace(pathReplacement.before, pathReplacement.after);
-            postmanUrl.path = postmanUrl.path.join("/").replace(pathReplacement.before, pathReplacement.after).split("/");
+            pathReplacements.forEach(pathReplacement => {
+                const postmanUrl = postmanItem.request.url;
+                postmanItem.name = postmanItem.name.replace(pathReplacement.before, "/" + pathReplacement.after);
+                postmanUrl.raw = postmanUrl.raw.replace(pathReplacement.before, pathReplacement.after);
+                postmanUrl.path = postmanUrl.path.join("/").replace(pathReplacement.before, pathReplacement.after).split("/");
+            }];
         } else if (isFolder(postmanItem)) {
             replacePathPrefix(postmanItem, pathReplacement);
         }
