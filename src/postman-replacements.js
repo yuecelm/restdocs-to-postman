@@ -66,7 +66,7 @@ const replacePathPrefix = (postmanCollection, pathReplacements) => {
                 postmanItem.name = postmanItem.name.replace(pathReplacement.before, "/" + pathReplacement.after);
                 postmanUrl.raw = postmanUrl.raw.replace(pathReplacement.before, pathReplacement.after);
                 postmanUrl.path = postmanUrl.path.join("/").replace(pathReplacement.before, pathReplacement.after).split("/");
-            }];
+            });
         } else if (isFolder(postmanItem)) {
             replacePathPrefix(postmanItem, pathReplacement);
         }
